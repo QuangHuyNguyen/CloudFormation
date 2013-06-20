@@ -110,8 +110,8 @@
      				[
            				"", 
                			[	"#!/bin/bash -v\n",
-							"sudo yum install nginx\n",
-							"sudo /etc/rc.d/init.d/nginx start\n",
+							"yum install nginx\n",
+							"/etc/rc.d/init.d/nginx start\n",
 							"touch /tmp/success\n"
            				]
                		]
