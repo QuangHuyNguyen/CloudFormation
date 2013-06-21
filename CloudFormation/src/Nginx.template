@@ -1,7 +1,7 @@
 {
   "AWSTemplateFormatVersion" : "2010-09-09",
   
-  "Description" : "AWS CloudFormation template to deploy jenkins.",
+  "Description" : "AWS CloudFormation template to deploy nginx.",
   
   "Parameters" : 
   {      
@@ -38,7 +38,7 @@
 				"cg1.4xlarge"
 			],
 			"ConstraintDescription" : "must be a valid EC2 instance type."
-		}
+		}  
   },
    
  "Resources" : 
@@ -50,33 +50,35 @@
     	{ 
      		"AWS::CloudFormation::Init" : 
        		{
-				"Config" : 
+				"config" : 
     			{ 
 					"packages" : 
      				{ 
       					"yum" : 
            				{ 
-            				"nginx" : []
+            				"nginx" : [],
+                			"java-1.6.0-openjdk-devel":[],
+                   			"git":[]
                  		}
 					},							
 					"files" : 
      				{ 
-      					"/etc/nginx/nginx.conf" : 
-           				{ 
-							"content" :	
-       						{ 
-        						"Fn::Join" : 
-              					[
-                     				"", 
-                         			[
+      					"/tmp/nginx/default.conf" : 
+           				{
+                			"content" : 
+                   			{ 
+                        		"Fn::Join" : 
+                          		[
+                              		"", 
+                                	[
 										"server { \n",
 										"listen 80 default;\n",
 										"location / {\n",
 										"proxy_pass http://127.0.0.1:8080;\n",
 										"}\n",
 										"}\n"
-         							]
-         						]
+          							]
+                 				]
 							},
 							"mode" : "000755",
 							"owner" : "root",
@@ -90,7 +92,8 @@
             				"nginx" : 
                 			{ 
                  				"enabled" : "true",
-								"ensureRunning" : "true"
+								"ensureRunning" : "true",
+        						"files": ["/etc/rc.d/init.d/nginx"]
 							}
        					}
             		}
@@ -110,9 +113,10 @@
      				[
            				"", 
                			[	"#!/bin/bash -v\n",
-							"yum install nginx\n",
-							"/etc/rc.d/init.d/nginx start\n",
-							"touch /tmp/success\n"
+                    
+                            "# Initialize the CF Init\n",
+          					"/opt/aws/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r Ec2Instance",
+          					"    --region ", { "Ref" : "AWS::Region" }, " || error_exit 'Failed to run cfn-init'\n"
            				]
                		]
   				}
